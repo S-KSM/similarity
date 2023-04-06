@@ -122,3 +122,36 @@ for term in search_terms:
 # Print the matching categories for each search term
 for term, category in search_term_categories.items():
     print(f'{term} is in the {category} category')
+############################################################################ Vectorize
+
+# Import required libraries
+from transformers import AutoTokenizer, AutoModel
+import numpy as np
+
+# Load a pre-trained language model
+tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+model = AutoModel.from_pretrained("bert-base-uncased")
+
+# Define the list of search terms and product categories
+search_terms = ['hello kitty', 'allergy medication', 'toilet paper', 'lipstick', 'hand soap']
+product_categories = ['beauty product', 'medication', 'household items']
+
+# Encode all search terms and product categories
+encoded_search_terms = tokenizer.batch_encode_plus(search_terms, add_special_tokens=True, return_tensors='pt')
+encoded_product_categories = tokenizer.batch_encode_plus(product_categories, add_special_tokens=True, return_tensors='pt')
+
+# Generate embeddings for all search terms and product categories
+search_term_embeddings = model(**encoded_search_terms)[1].detach().numpy()
+product_category_embeddings = model(**encoded_product_categories)[1].detach().numpy()
+
+# Calculate similarities between all search terms and product categories
+similarities = np.inner(search_term_embeddings, product_category_embeddings)
+
+# Define a dictionary to store the matching product categories for each search term
+search_term_categories = {}
+for i, term in enumerate(search_terms):
+    search_term_categories[term] = product_categories[np.argmax(similarities[i])]
+
+# Print the matching categories for each search term
+for term, category in search_term_categories.items():
+    print(f'{term} is in the {category} category')
